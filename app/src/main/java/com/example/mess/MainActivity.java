@@ -1,85 +1,58 @@
 package com.example.mess;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.DataBase.Contact;
+import com.DataBase.DatabaseDAO;
+
 import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements ChatClient.MessageListener {
+public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerViewMessages;
-    private MessageAdapter messageAdapter;
-    private ArrayList<String> messages;
-    private EditText editTextMessage;
-    private Button buttonSend;
-    private ChatClient chatClient;
     private static final String TAG = "MainActivity";
+    private RecyclerView recyclerViewChats;
+    private ChatAdapter chatAdapter;
+    private List<Contact> chatList;
+    private DatabaseDAO databaseDAO;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
-        editTextMessage = findViewById(R.id.editTextMessage);
-        buttonSend = findViewById(R.id.buttonSend);
+        recyclerViewChats = findViewById(R.id.recyclerViewChats);
+        databaseDAO = new DatabaseDAO(this);
 
-        messages = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messages);
+        // Add some dummy contacts for testing
+        databaseDAO.addContact(new Contact(1, "John Doe", "123456789"));
+        databaseDAO.addContact(new Contact(2, "Jane Smith", "987654321"));
 
-        recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewMessages.setAdapter(messageAdapter);
+        chatList = new ArrayList<>(databaseDAO.getAllContacts());
+        Log.d(TAG, "Number of contacts: " + chatList.size());
 
-        chatClient = new ChatClient(this);
+        chatAdapter = new ChatAdapter(this, chatList);
+        recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewChats.setAdapter(chatAdapter);
 
-        buttonSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = editTextMessage.getText().toString();
-                if (!TextUtils.isEmpty(message)) {
-                    chatClient.sendMessage(message);
-                    // Add the sent message to the list and update the adapter
-                    messages.add("Me: " + message);
-                    messageAdapter.notifyItemInserted(messages.size() - 1);
-                    recyclerViewMessages.scrollToPosition(messages.size() - 1);
-                    editTextMessage.setText("");
-                } else {
-                    Toast.makeText(MainActivity.this, "Message cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                chatClient.connect();
-            }
-        }).start();
-    }
-
-    @Override
-    public void onMessageReceived(final String message) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "New message received: " + message);
-                messages.add(message);
-                messageAdapter.notifyItemInserted(messages.size() - 1);
-                recyclerViewMessages.scrollToPosition(messages.size() - 1);
-            }
+        chatAdapter.setOnItemClickListener(position -> {
+            Contact selectedChat = chatList.get(position);
+            Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+            intent.putExtra("chatId", selectedChat.getId());
+            intent.putExtra("chatName", selectedChat.getName());
+            startActivity(intent);
         });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        chatClient.disconnect();
+        databaseDAO.close();
     }
 }

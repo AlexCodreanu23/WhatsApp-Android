@@ -6,13 +6,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.DataBase.Message;
+
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
-    private List<String> messages;
+    private List<Message> messages;
 
-    public MessageAdapter(List<String> messages) {
+    public MessageAdapter(List<Message> messages) {
         this.messages = messages;
     }
 
@@ -25,7 +28,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
-        holder.bind(messages.get(position));
+        Message message = messages.get(position);
+        holder.bind(message);
     }
 
     @Override
@@ -42,8 +46,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             textViewMessage = itemView.findViewById(R.id.textViewMessage);
         }
 
-        public void bind(String message) {
-            textViewMessage.setText(message);
+        public void bind(Message message) {
+            textViewMessage.setText(message.getMessage());
         }
     }
 }
