@@ -42,7 +42,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         Contact chat = chatList.get(position);
         holder.textViewChatName.setText(chat.getName());
-        holder.textViewLastMessage.setText(chat.getPhone()); // Assuming phone as last message for display purpose
+        holder.textViewLastMessage.setText(chat.getPhone()); // Displaying phone number for now
     }
 
     @Override

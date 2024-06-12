@@ -6,7 +6,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +21,14 @@ public class DatabaseDAO {
 
     // Contacts
     public long addContact(Contact contact) {
-        ContentValues values = new ContentValues();
-        values.put("name", contact.getName());
-        values.put("phone", contact.getPhone());
-        return db.insert("contacts", null, values);
+        if (!contactExists(contact.getPhone())) {
+            ContentValues values = new ContentValues();
+            values.put("name", contact.getName());
+            values.put("phone", contact.getPhone());
+            return db.insert("contacts", null, values);
+        } else {
+            return -1; // Indicate contact already exists
+        }
     }
 
     public List<Contact> getAllContacts() {
@@ -41,6 +44,31 @@ public class DatabaseDAO {
             cursor.close();
         }
         return contacts;
+    }
+
+    // Get contacts with messages
+    public List<Contact> getContactsWithMessages() {
+        List<Contact> contacts = new ArrayList<>();
+        String query = "SELECT DISTINCT contacts.id, contacts.name, contacts.phone FROM contacts INNER JOIN messages ON contacts.id = messages.contact_id";
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("id"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("name"));
+                @SuppressLint("Range") String phone = cursor.getString(cursor.getColumnIndex("phone"));
+                contacts.add(new Contact(id, name, phone));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return contacts;
+    }
+
+    // Check if contact exists
+    private boolean contactExists(String phone) {
+        Cursor cursor = db.query("contacts", null, "phone = ?", new String[]{phone}, null, null, null);
+        boolean exists = (cursor.getCount() > 0);
+        cursor.close();
+        return exists;
     }
 
     // Messages

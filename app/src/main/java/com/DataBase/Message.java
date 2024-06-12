@@ -13,19 +13,36 @@ public class Message {
         this.timestamp = timestamp;
     }
 
+    // Getter and Setter methods
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getContactId() {
         return contactId;
     }
 
+    public void setContactId(int contactId) {
+        this.contactId = contactId;
+    }
+
     public String getMessage() {
         return message;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 }

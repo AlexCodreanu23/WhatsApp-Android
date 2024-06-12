@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
-    private List<Message> messages;
+    private final List<Message> messages;
 
     public MessageAdapter(List<Message> messages) {
         this.messages = messages;
@@ -39,7 +39,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView textViewMessage;
+        private final TextView textViewMessage;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
