@@ -30,6 +30,4 @@ class FeedReaderDbHelperTest {
         assertEquals("1234567890", contacts[0].phoneNumber)
     }
 
-    // Adaugă aici teste suplimentare pentru alte funcționalități ale FeedReaderDbHelper
-
 }
