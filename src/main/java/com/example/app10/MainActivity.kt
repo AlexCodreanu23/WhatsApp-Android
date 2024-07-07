@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.app10.ui.theme.App10Theme
 
+// Define the schema and contract for the SQLite database
 object FeedReaderContract {
     object FeedEntry : BaseColumns {
         const val TABLE_NAME = "entry"
@@ -32,30 +33,37 @@ object FeedReaderContract {
     }
 }
 
+// SQL statement to create the database table
 private const val SQL_CREATE_ENTRIES =
     "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
             "${BaseColumns._ID} INTEGER PRIMARY KEY," +
             "${FeedReaderContract.FeedEntry.NAME} TEXT," +
             "${FeedReaderContract.FeedEntry.PHONE_NUMBER} TEXT)"
 
+// SQL statement to delete the database table
 private const val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.TABLE_NAME}"
 
+// SQLiteOpenHelper class to manage database creation and version management
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_ENTRIES)
     }
+
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL(SQL_DELETE_ENTRIES)
         onCreate(db)
     }
+
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         onUpgrade(db, oldVersion, newVersion)
     }
+
     companion object {
         const val DATABASE_VERSION = 1
         const val DATABASE_NAME = "FeedReader.db"
     }
 
+    // Method to get all contacts from the database
     fun getAllContacts(): List<Contact> {
         val db = readableDatabase
         val projection = arrayOf(
@@ -85,6 +93,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         return contacts
     }
 
+    // Method to remove a contact from the database
     fun removeContact(name: String) {
         val db = writableDatabase
         val selection = "${FeedReaderContract.FeedEntry.NAME} LIKE ?"
@@ -93,9 +102,13 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
     }
 }
 
+// Data class representing a contact
 data class Contact(val name: String, val phoneNumber: String)
+
+// Data class representing a message
 data class Message(val content: String)
 
+// Class to manage user preferences using SharedPreferences
 class UserPreferences(context: Context) {
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
@@ -106,6 +119,7 @@ class UserPreferences(context: Context) {
         }
 }
 
+// Main activity of the application
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -173,6 +187,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Composable function for the sign-in screen
 @Composable
 fun SignInScreen(onSignInSuccess: () -> Unit) {
     var name by remember { mutableStateOf("") }
@@ -210,6 +225,7 @@ fun SignInScreen(onSignInSuccess: () -> Unit) {
     }
 }
 
+// Composable function for the add contact screen
 @Composable
 fun AddContactScreen(
     context: Context,
@@ -262,6 +278,7 @@ fun AddContactScreen(
     }
 }
 
+// Composable function for the main screen displaying the list of contacts
 @Composable
 fun MainScreen(
     contacts: List<Contact>,
@@ -312,6 +329,7 @@ fun MainScreen(
     }
 }
 
+// Composable function for the contact detail screen
 @Composable
 fun ContactDetailScreen(contact: Contact, onBack: () -> Unit) {
     var message by remember { mutableStateOf("") }
@@ -359,6 +377,7 @@ fun ContactDetailScreen(contact: Contact, onBack: () -> Unit) {
     }
 }
 
+// Preview function to display the sign-in screen in Android Studio's preview mode
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
