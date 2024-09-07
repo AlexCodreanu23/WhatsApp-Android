@@ -36,7 +36,7 @@ object FeedReaderContract {
 // SQL statement to create the database table
 private const val SQL_CREATE_ENTRIES =
     "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
-            "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+            "${BaseColumns._ID} PRIMARY KEY," +
             "${FeedReaderContract.FeedEntry.NAME} TEXT," +
             "${FeedReaderContract.FeedEntry.PHONE_NUMBER} TEXT)"
 
