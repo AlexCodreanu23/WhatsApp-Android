@@ -100,6 +100,16 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         val selectionArgs = arrayOf(name)
         db.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
     }
+
+    // Method to add a contact to the database
+    fun addContact(name: String, phoneNumber: String) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(FeedReaderContract.FeedEntry.NAME, name)
+            put(FeedReaderContract.FeedEntry.PHONE_NUMBER, phoneNumber)
+        }
+        db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+    }
 }
 
 // Data class representing a contact
@@ -117,6 +127,12 @@ class UserPreferences(context: Context) {
         set(value) {
             sharedPreferences.edit().putBoolean("is_user_logged_in", value).apply()
         }
+
+    var loggedInUserName: String?
+        get() = sharedPreferences.getString("logged_in_user_name", null)
+        set(value) {
+            sharedPreferences.edit().putString("logged_in_user_name", value).apply()
+        }
 }
 
 // Main activity of the application
@@ -125,12 +141,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val userPreferences = UserPreferences(this)
         val dbHelper = FeedReaderDbHelper(this)
-        val initialContacts = dbHelper.getAllContacts()
 
         setContent {
             App10Theme {
                 var isUserLoggedIn by remember { mutableStateOf(userPreferences.isUserLoggedIn) }
-                var contacts by remember { mutableStateOf(mutableStateListOf<Contact>().apply { addAll(initialContacts) }) }
+                var contacts by remember { mutableStateOf(dbHelper.getAllContacts().filter { it.name != userPreferences.loggedInUserName }) }
                 var showAddContactScreen by remember { mutableStateOf(false) }
                 var selectedContact by remember { mutableStateOf<Contact?>(null) }
 
@@ -145,9 +160,11 @@ class MainActivity : ComponentActivity() {
                                     context = this,
                                     onAddContactSuccess = {
                                         showAddContactScreen = false
+                                        contacts = dbHelper.getAllContacts().filter { it.name != userPreferences.loggedInUserName }
                                     },
                                     onAddContact = { name, phoneNumber ->
-                                        contacts.add(Contact(name, phoneNumber))
+                                        contacts = contacts + Contact(name, phoneNumber)
+                                        dbHelper.addContact(name, phoneNumber)
                                     }
                                 )
                             }
@@ -169,7 +186,7 @@ class MainActivity : ComponentActivity() {
                                         selectedContact = it
                                     },
                                     onRemoveContact = { contact ->
-                                        contacts.remove(contact)
+                                        contacts = contacts - contact
                                         dbHelper.removeContact(contact.name)
                                     }
                                 )
@@ -178,7 +195,9 @@ class MainActivity : ComponentActivity() {
                     } else {
                         SignInScreen(onSignInSuccess = {
                             userPreferences.isUserLoggedIn = true
+                            userPreferences.loggedInUserName = "New User" // You may want to set this to the user's actual name
                             isUserLoggedIn = true
+                            contacts = dbHelper.getAllContacts().filter { it.name != userPreferences.loggedInUserName }
                         })
                     }
                 }
@@ -234,7 +253,6 @@ fun AddContactScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    var isAddingContact by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -258,17 +276,8 @@ fun AddContactScreen(
         Button(
             onClick = {
                 if (name.isNotBlank() && phoneNumber.isNotBlank()) {
-                    isAddingContact = true
                     onAddContact(name, phoneNumber)
                     onAddContactSuccess()
-                    val dbHelper = FeedReaderDbHelper(context)
-                    val db = dbHelper.writableDatabase
-
-                    val values = ContentValues().apply {
-                        put(FeedReaderContract.FeedEntry.NAME, name)
-                        put(FeedReaderContract.FeedEntry.PHONE_NUMBER, phoneNumber)
-                    }
-                    db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
                 }
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
